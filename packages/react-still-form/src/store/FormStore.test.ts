@@ -1,10 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
-import { composeInitialState } from "./composeInitialState";
+import { composeInitialFormState } from "./composeInitialFormState";
 import { FormStore } from "./FormStore";
 
 describe("FormStore", () => {
   it("mutate", () => {
-    const store = new FormStore(composeInitialState({}));
+    const store = new FormStore(composeInitialFormState({}));
 
     const fn = vi.fn(() => {});
 
@@ -18,7 +18,7 @@ describe("FormStore", () => {
   });
 
   it("mutateField", () => {
-    const store = new FormStore(composeInitialState({ aaa: "a" }));
+    const store = new FormStore(composeInitialFormState({ aaa: "a" }));
 
     const fn = vi.fn(() => {});
 

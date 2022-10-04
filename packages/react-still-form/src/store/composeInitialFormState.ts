@@ -1,7 +1,7 @@
 import { initializeField } from "./initializeField";
 import { InternalFormState } from "./InternalFormState";
 
-export const composeInitialState = (
+export const composeInitialFormState = (
   initialValues: Record<string, string>
 ): InternalFormState => {
   return {
