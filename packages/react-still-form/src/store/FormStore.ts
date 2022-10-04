@@ -10,6 +10,10 @@ export class FormStore {
     this.#state = initialState;
   }
 
+  get state() {
+    return this.#state;
+  }
+
   notify(options: { fieldName?: string } = {}) {
     const { fieldName } = options;
     this.#listeners
