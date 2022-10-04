@@ -1,4 +1,3 @@
-import { composeInitialState } from "./composeInitialState";
 import { FormEventListener } from "./FormEventListener";
 import { InternalFieldState } from "./InternalFieldState";
 import { InternalFormState } from "./InternalFormState";
@@ -7,8 +6,8 @@ export class FormStore {
   #state: InternalFormState;
   #listeners: FormEventListener[] = [];
 
-  constructor() {
-    this.#state = composeInitialState();
+  constructor(readonly initialState: InternalFormState) {
+    this.#state = initialState;
   }
 
   notify(options: { fieldName?: string } = {}) {
