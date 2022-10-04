@@ -1,8 +1,14 @@
 {
-  "name": "react-still-form",
+  "name": "@react-still-form/core",
   "private": true,
   "version": "0.0.0",
   "type": "module",
+  "module": "./dist/index.ts",
+  "types": "./dist-types/index.d.ts",
+  "files": [
+    "/dist",
+    "/dist-types"
+  ],
   "scripts": {
     "test": "vitest",
     "dev": "vite",
