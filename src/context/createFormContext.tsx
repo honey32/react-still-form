@@ -9,14 +9,17 @@ import { useSyncExternalStoreWithSelector } from "use-sync-external-store/with-s
 
 import { composeInitialFormState } from "../store/composeInitialFormState";
 import { FormStore } from "../store/FormStore";
+import { FormSchema } from "../schema/FormSchema";
 import { FormState, formStateFromInternal } from "./FormState";
+import { flatInitialValuesFromSchema } from "../schema/FlatInitialValuesForSchema";
 
-type FormContextContents = {
+type FormContextContents<Sc extends FormSchema> = {
   store: FormStore;
+  schema: Sc;
 };
 
-type FormContext = {
-  useContext: () => FormContextContents;
+type FormContext<Sc extends FormSchema> = {
+  useContext: () => FormContextContents<Sc>;
 
   useSelector: <T extends unknown>(
     selector: (s: FormState) => T,
@@ -26,10 +29,12 @@ type FormContext = {
   Provider: React.FC<{ children: ReactNode }>;
 };
 
-export const createFormContext = (): FormContext => {
-  type Context = FormContext;
+export const createFormContext = <Sc extends FormSchema>(
+  schema: Sc
+): FormContext<Sc> => {
+  type Context = FormContext<Sc>;
 
-  const ctx = createContext<FormContextContents | undefined>(undefined);
+  const ctx = createContext<FormContextContents<Sc> | undefined>(undefined);
 
   const useContext: Context["useContext"] = () => {
     const contents = React_useContext(ctx);
@@ -42,7 +47,8 @@ export const createFormContext = (): FormContext => {
     const { store } = useContext();
 
     const composedSelector = useCallback(
-      (internal: typeof store.state) => selector(formStateFromInternal(internal)),
+      (internal: typeof store.state) =>
+        selector(formStateFromInternal(internal)),
       [selector]
     );
 
@@ -55,7 +61,12 @@ export const createFormContext = (): FormContext => {
   };
 
   const Provider: Context["Provider"] = ({ children }) => {
-    const ref = useRef({ store: new FormStore(composeInitialFormState({})) });
+    const ref = useRef({
+      store: new FormStore(
+        composeInitialFormState(flatInitialValuesFromSchema(schema))
+      ),
+      schema,
+    });
 
     return <ctx.Provider value={ref.current}>{children}</ctx.Provider>;
   };
