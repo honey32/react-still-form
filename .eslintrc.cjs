@@ -23,6 +23,7 @@ module.exports = {
     'react/prop-types': 'off',
     'react-hooks/rules-of-hooks': 'error',
     'react-hooks/exhaustive-deps': 'error',
-    '@typescript-eslint/consistent-type-definitions': 'off'
+    '@typescript-eslint/consistent-type-definitions': 'off',
+    '@typescript-eslint/strict-boolean-expressions': 'off'
   }
 }
