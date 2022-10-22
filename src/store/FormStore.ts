@@ -10,11 +10,11 @@ export class FormStore {
     this.#state = initialState;
   }
 
-  get state() {
+  get state(): InternalFormState {
     return this.#state;
   }
 
-  notify(options: { fieldName?: string } = {}) {
+  notify(options: { fieldName?: string } = {}): void {
     const { fieldName } = options;
     this.#listeners
       .filter((listener) => {
@@ -39,7 +39,7 @@ export class FormStore {
     };
   }
 
-  mutate(fn: (prev: InternalFormState) => InternalFormState) {
+  mutate(fn: (prev: InternalFormState) => InternalFormState): void {
     this.#state = fn(this.#state);
     this.notify();
   }
@@ -47,7 +47,7 @@ export class FormStore {
   mutateField(
     name: string,
     fn: (prev: InternalFieldState) => InternalFieldState
-  ) {
+  ): void {
     this.#state = {
       ...this.#state,
       fields: {

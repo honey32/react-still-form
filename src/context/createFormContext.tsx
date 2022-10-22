@@ -49,7 +49,7 @@ export const createFormContext = <Sc extends FormSchema>(
     const composedSelector = useCallback(
       (internal: typeof store.state) =>
         selector(formStateFromInternal(internal)),
-      [selector]
+      [selector, store]
     );
 
     return useSyncExternalStoreWithSelector(
