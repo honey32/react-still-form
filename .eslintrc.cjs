@@ -21,8 +21,8 @@ module.exports = {
   ],
   rules: {
     'react/prop-types': 'off',
-    'react-hooks/rules-of-hooks': 'warn',
-    'react-hooks/exhaustive-deps': 'warn',
+    'react-hooks/rules-of-hooks': 'error',
+    'react-hooks/exhaustive-deps': 'error',
     '@typescript-eslint/consistent-type-definitions': 'off'
   }
 }
