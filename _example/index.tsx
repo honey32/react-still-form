@@ -4,23 +4,23 @@ import { createFormContext } from "../src";
 
 const form = createFormContext({ aaa: { type: "string" } });
 
-const JsonAll = () => {
+const JsonAll: React.FC = () => {
   const json = form.useSelector((s) => JSON.stringify(s, null, 2));
   return <div>{json}</div>;
 };
 
-const AddA = () => {
+const AddA: React.FC = () => {
   const { store } = form.useContext();
   const handleClick = useCallback(() => {
     store.mutateField("aaa", (prev) => ({
       ...prev,
       value: prev.value + "a",
     }));
-  }, []);
+  }, [store]);
   return <button onClick={handleClick}>クリック！</button>;
 };
 
-const Page = () => {
+const Page: React.FC = () => {
   return (
     <form.Provider>
       <JsonAll />
