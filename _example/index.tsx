@@ -1,8 +1,12 @@
 import React, { useCallback } from "react";
 import ReactDOM from "react-dom";
 import { createFormContext } from "../src";
+import { useSimpleField } from "../src/useSimpleField";
 
-const form = createFormContext({ aaa: { type: "string" } });
+const form = createFormContext({
+  aaa: { type: "string" },
+  bbb: { type: "string" },
+});
 
 const JsonAll: React.FC = () => {
   const json = form.useSelector((s) => JSON.stringify(s, null, 2));
@@ -20,11 +24,18 @@ const AddA: React.FC = () => {
   return <button onClick={handleClick}>クリック！</button>;
 };
 
+const InputB: React.FC = () => {
+  const { state, handleChange } = useSimpleField(form, "bbb");
+
+  return <input value={state.value} onChange={handleChange} />;
+};
+
 const Page: React.FC = () => {
   return (
     <form.Provider>
       <JsonAll />
       <AddA />
+      <InputB />
     </form.Provider>
   );
 };

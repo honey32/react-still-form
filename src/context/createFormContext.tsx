@@ -18,7 +18,7 @@ type FormContextContents<Sc extends FormSchema> = {
   schema: Sc;
 };
 
-type FormContext<Sc extends FormSchema> = {
+export type FormContext<Sc extends FormSchema> = {
   useContext: () => FormContextContents<Sc>;
 
   useSelector: <T extends unknown>(
