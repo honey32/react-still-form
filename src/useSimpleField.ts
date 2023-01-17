@@ -4,6 +4,13 @@ import { FormSchema } from "./schema/FormSchema";
 import { _handleFieldChange, HandleFieldChangeFn } from "./handleFieldChange";
 import { InternalFieldState } from "./store/InternalFieldState";
 
+const mangleField = (
+  state: InternalFieldState | undefined
+): InternalFieldState => {
+  if (!state) return { initialValue: "", value: "" };
+  return state;
+};
+
 export const useSimpleField = (
   ctx: FormContext<FormSchema>,
   field: { name: string }
@@ -18,5 +25,5 @@ export const useSimpleField = (
     [context.store, field.name]
   );
 
-  return { state: fieldState, handleChange };
+  return { state: mangleField(fieldState), handleChange };
 };

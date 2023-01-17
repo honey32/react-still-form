@@ -6,6 +6,7 @@ import { useSimpleField } from "../src/useSimpleField";
 const form = createFormContext({
   aaa: { type: "string" },
   bbb: { type: "string" },
+  ccc: { type: "array", of: { type: "string" } },
 });
 
 const JsonAll: React.FC = () => {
@@ -30,12 +31,19 @@ const InputB: React.FC = () => {
   return <input value={state.value} onChange={handleChange} />;
 };
 
+const InputC0: React.FC = () => {
+  const { state, handleChange } = useSimpleField(form, form.fields.ccc._(0));
+
+  return <input value={state.value} onChange={handleChange} />;
+};
+
 const Page: React.FC = () => {
   return (
     <form.Provider>
       <JsonAll />
       <AddA />
       <InputB />
+      <InputC0 />
     </form.Provider>
   );
 };
