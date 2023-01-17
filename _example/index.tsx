@@ -11,7 +11,11 @@ const form = createFormContext({
 
 const JsonAll: React.FC = () => {
   const json = form.useSelector((s) => JSON.stringify(s, null, 2));
-  return <div>{json}</div>;
+  return (
+    <pre>
+      <code>{json}</code>
+    </pre>
+  );
 };
 
 const AddA: React.FC = () => {
@@ -28,13 +32,17 @@ const AddA: React.FC = () => {
 const InputB: React.FC = () => {
   const { state, handleChange } = useSimpleField(form, form.fields.aaa);
 
-  return <input value={state.value} onChange={handleChange} />;
+  return (
+    <input placeholder="aaa" value={state.value} onChange={handleChange} />
+  );
 };
 
 const InputC0: React.FC = () => {
   const { state, handleChange } = useSimpleField(form, form.fields.ccc._(0));
 
-  return <input value={state.value} onChange={handleChange} />;
+  return (
+    <input placeholder="ccc.0" value={state.value} onChange={handleChange} />
+  );
 };
 
 const Page: React.FC = () => {
@@ -42,8 +50,12 @@ const Page: React.FC = () => {
     <form.Provider>
       <JsonAll />
       <AddA />
-      <InputB />
-      <InputC0 />
+      <div>
+        <InputB />
+      </div>
+      <div>
+        <InputC0 />
+      </div>
     </form.Provider>
   );
 };
