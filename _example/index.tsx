@@ -25,7 +25,7 @@ const AddA: React.FC = () => {
 };
 
 const InputB: React.FC = () => {
-  const { state, handleChange } = useSimpleField(form, "bbb");
+  const { state, handleChange } = useSimpleField(form, form.fields.aaa);
 
   return <input value={state.value} onChange={handleChange} />;
 };
