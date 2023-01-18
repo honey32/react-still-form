@@ -30,7 +30,7 @@ const AddA: React.FC = () => {
 };
 
 const InputB: React.FC = () => {
-  const { state, handleChange } = useSimpleField(form, form.fields.aaa);
+  const { state, handleChange } = useSimpleField(form, form.$.aaa);
 
   return (
     <input placeholder="aaa" value={state.value} onChange={handleChange} />
@@ -38,7 +38,7 @@ const InputB: React.FC = () => {
 };
 
 const InputC0: React.FC = () => {
-  const { state, handleChange } = useSimpleField(form, form.fields.ccc._(0));
+  const { state, handleChange } = useSimpleField(form, form.$.ccc._(0));
 
   return (
     <input placeholder="ccc.0" value={state.value} onChange={handleChange} />

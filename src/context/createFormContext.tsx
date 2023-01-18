@@ -29,7 +29,7 @@ export type FormContext<Sc extends FormSchema> = {
 
   Provider: React.FC<{ children: ReactNode }>;
 
-  fields: EncodeSchema<Sc>;
+  $: EncodeSchema<Sc>;
 };
 
 export const createFormContext = <Sc extends FormSchema>(
@@ -74,5 +74,5 @@ export const createFormContext = <Sc extends FormSchema>(
     return <ctx.Provider value={ref.current}>{children}</ctx.Provider>;
   };
 
-  return { useContext, useSelector, Provider, fields: encodeSchema(schema) };
+  return { useContext, useSelector, Provider, $: encodeSchema(schema) };
 };
