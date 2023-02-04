@@ -1,4 +1,4 @@
-import React, { useCallback } from "react";
+import React, { ReactNode, useCallback, useMemo } from "react";
 import ReactDOM from "react-dom";
 import { createFormContext } from "../src";
 import { useSimpleField } from "../src/useSimpleField";
@@ -37,11 +37,63 @@ const InputB: React.FC = () => {
   );
 };
 
-const InputC0: React.FC = () => {
-  const { state, handleChange } = useSimpleField(form, form.$.ccc._(0));
+const SwitchC0: React.FC = () => {
+  const context = form.useContext();
+
+  const handleClick = (): void => {
+    context.store.mutate((s) => {
+      for (let i = 0; true; i++) {
+        const fieldName = form.$.ccc._(i).name;
+        if (!Object.hasOwn(s.fields, fieldName)) {
+          return {
+            ...s,
+            fields: {
+              ...s.fields,
+              [fieldName]: { initialValue: "", value: "" },
+            },
+          };
+        }
+      }
+    });
+  };
+
+  const size = form.useSelector((s) => {
+    for (let i = 0; true; i++) {
+      const fieldName = form.$.ccc._(i).name;
+      if (!Object.hasOwn(s.fields, fieldName)) {
+        return i;
+      }
+    }
+  });
+
+  const fields = useMemo(() => {
+    const arr: ReactNode[] = [];
+    for (let i = 0; i < size; i++) {
+      arr.push(
+        <div key={i}>
+          <InputC0 name={form.$.ccc._(i).name} />
+        </div>
+      );
+    }
+    return arr;
+  }, [size]);
 
   return (
-    <input placeholder="ccc.0" value={state.value} onChange={handleChange} />
+    <div>
+      <button type="button" onClick={handleClick}>
+        Show / Remove Input CCC.0
+      </button>
+
+      {fields}
+    </div>
+  );
+};
+
+const InputC0: React.FC<{ name: string }> = ({ name }) => {
+  const { state, handleChange } = useSimpleField(form, { name });
+
+  return (
+    <input placeholder={name} value={state.value} onChange={handleChange} />
   );
 };
 
@@ -53,9 +105,11 @@ const Page: React.FC = () => {
       <div>
         <InputB />
       </div>
-      <div>
-        <InputC0 />
-      </div>
+
+      <SwitchC0 />
+
+      {/* This causes error. */}
+      {/* <InputC0 name={form.$.ccc._(100).name} /> */}
     </form.Provider>
   );
 };
