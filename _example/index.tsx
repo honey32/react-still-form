@@ -1,4 +1,4 @@
-import React, { ReactNode, useCallback, useMemo } from "react";
+import React, { ReactNode, useCallback, useEffect, useMemo } from "react";
 import ReactDOM from "react-dom";
 import { createFormContext } from "../src";
 import { initializeField } from "../src/store/initializeField";
@@ -94,9 +94,37 @@ const InputC0: React.FC<{ name: string }> = ({ name }) => {
   return <input placeholder={name} {...input} />;
 };
 
+const Validate: React.FC = () => {
+  const context = form.useContext();
+
+  useEffect(() => {
+    const unregister = context.store.realtimeValidation(
+      { aaa: true },
+      "aaa",
+      async ({ aaa }, { signal }) => {
+        const rand = Math.random() * 1000;
+        await new Promise((resolve) => {
+          const timerId = window.setTimeout(resolve, rand);
+          signal.addEventListener("abort", () => {
+            window.clearTimeout(timerId);
+          });
+        });
+        if (aaa.length >= 10) return `${aaa.length} ... TOO LONG!`;
+        return undefined;
+      }
+    );
+    return () => {
+      unregister();
+    };
+  }, [context.store]);
+
+  return null;
+};
+
 const Page: React.FC = () => {
   return (
     <form.Provider>
+      <Validate />
       <JsonAll />
       <AddA />
       <div>

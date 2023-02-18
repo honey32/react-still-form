@@ -8,5 +8,7 @@ export const initializeField = (initialValue: string): InternalFieldState => {
     visited: false,
     touched: false,
     active: false,
+    isValidating: false,
+    realtimeError: undefined,
   };
 };
