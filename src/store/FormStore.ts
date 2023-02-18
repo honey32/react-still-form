@@ -1,3 +1,4 @@
+import { AsyncTaskManager } from "../validation/AsyncTaskManager";
 import { FormEventListener } from "./FormEventListener";
 import { InternalFieldState } from "./InternalFieldState";
 import { InternalFormState } from "./InternalFormState";
@@ -5,6 +6,7 @@ import { InternalFormState } from "./InternalFormState";
 export class FormStore {
   #state: InternalFormState;
   #listeners: FormEventListener[] = [];
+  #validationManager = new AsyncTaskManager();
 
   constructor(readonly initialState: InternalFormState) {
     this.#state = initialState;
@@ -57,5 +59,50 @@ export class FormStore {
     };
 
     this.notify({ fieldName: name });
+  }
+
+  realtimeValidation<Fields extends Record<string, boolean>>(
+    fields: Fields,
+    targetName: string,
+    fn: (
+      values: Record<keyof Fields, string>,
+      options: { signal: AbortSignal }
+    ) => PromiseLike<unknown> | unknown
+  ): () => void {
+    return this.subscribe(() => {
+      const valuesEntries = Object.entries(fields)
+        .filter(([_, v]) => v)
+        .map(([k]) => [k, this.#state.fields[k].value] as const);
+      const values = Object.fromEntries(valuesEntries) as Record<
+        keyof Fields,
+        string
+      >;
+
+      this.#validationManager.tryToExecute(
+        targetName,
+        values,
+        async (values, ac) => {
+          this.mutateField(targetName, (prev) => ({
+            ...prev,
+            isValidating: true,
+          }));
+
+          const validationError = await fn(values, { signal: ac.signal });
+
+          if (ac.signal.aborted) {
+            this.mutateField(targetName, (prev) => ({
+              ...prev,
+              isValidating: false,
+            }));
+            return;
+          }
+          this.mutateField(targetName, (prev) => ({
+            ...prev,
+            realtimeError: validationError,
+            isValidating: false,
+          }));
+        }
+      );
+    }, fields);
   }
 }

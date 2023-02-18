@@ -5,4 +5,6 @@ export type InternalFieldState = {
   visited: boolean;
   touched: boolean;
   active: boolean;
+  realtimeError: unknown | undefined;
+  isValidating: boolean;
 };
