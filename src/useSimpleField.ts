@@ -6,6 +6,7 @@ import { InternalFieldState } from "./store/InternalFieldState";
 
 type InputProps = {
   value: string;
+  name: string;
   onChange: HandleFieldChangeFn;
   onFocus: () => void;
   onBlur: () => void;
@@ -24,7 +25,7 @@ export const useSimpleField = (
 
   const context = ctx.useContext();
 
-  const input: Omit<InputProps, "value"> = useMemo(() => {
+  const input: Omit<InputProps, "value" | "name"> = useMemo(() => {
     const store = context.store;
     const name = field.name;
 
@@ -56,7 +57,7 @@ export const useSimpleField = (
   const { value, ...meta } = fieldState;
 
   return {
-    input: { value, ...input },
+    input: { value, name: field.name, ...input },
     meta,
   };
 };
