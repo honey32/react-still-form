@@ -1,6 +1,7 @@
 import React, { ReactNode, useCallback, useMemo } from "react";
 import ReactDOM from "react-dom";
 import { createFormContext } from "../src";
+import { initializeField } from "../src/store/initializeField";
 import { useSimpleField } from "../src/useSimpleField";
 
 const form = createFormContext({
@@ -54,14 +55,7 @@ const SwitchC0: React.FC = () => {
             ...s,
             fields: {
               ...s.fields,
-              [fieldName]: {
-                initialValue: "",
-                value: "",
-                modified: false,
-                visited: false,
-                touched: false,
-                active: false,
-              },
+              [fieldName]: initializeField(""),
             },
           };
         }
