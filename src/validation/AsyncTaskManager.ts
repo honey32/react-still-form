@@ -13,8 +13,6 @@ export class AsyncTaskManager {
     taskFn: (values: Values, ac: AbortController) => Promise<void>
   ): void {
     const state = this.#map.get(targetName);
-    // if task is running and value is not changed, leave it running.
-    if (state && shallowEqualStableKeys(state.values, values)) return;
 
     // if task is running, abort it.
     state?.ac.abort();
@@ -25,14 +23,3 @@ export class AsyncTaskManager {
     void taskFn(values, ac);
   }
 }
-
-const shallowEqualStableKeys = (
-  l: Record<string, string>,
-  r: Record<string, string>
-): boolean => {
-  const keys = Object.keys(l);
-  for (const key of keys) {
-    if (!Object.is(l[key], r[key])) return false;
-  }
-  return true;
-};

@@ -16,13 +16,29 @@ export class FormStore {
     return this.#state;
   }
 
-  notify(options: { fieldName?: string } = {}): void {
+  notify(
+    options: {
+      fieldName?: string;
+      prevValue?: string;
+      currentValue?: string;
+    } = {}
+  ): void {
     const { fieldName } = options;
     this.#listeners
       .filter((listener) => {
         if (!fieldName) return true;
         if (!listener.fields) return true;
-        if (fieldName in listener.fields) return true;
+        if (fieldName in listener.fields) {
+          if (
+            listener.fields[fieldName] === "value" &&
+            typeof options.prevValue === "string" &&
+            options.prevValue === options.currentValue
+          ) {
+            return false;
+          }
+          return true;
+        }
+
         return false;
       })
       .forEach((l) => {
@@ -32,7 +48,7 @@ export class FormStore {
 
   subscribe(
     fn: () => void,
-    options: { fields?: Record<string, boolean> } = {}
+    options: Omit<FormEventListener, "fn"> = {}
   ): () => void {
     const listener = { fn, fields: options.fields };
     this.#listeners.push(listener);
@@ -50,15 +66,22 @@ export class FormStore {
     name: string,
     fn: (prev: InternalFieldState) => InternalFieldState
   ): void {
+    const prevFieldState = this.#state.fields[name];
+    const nextState = fn(prevFieldState);
+
     this.#state = {
       ...this.#state,
       fields: {
         ...this.#state.fields,
-        [name]: fn(this.#state.fields[name]),
+        [name]: nextState,
       },
     };
 
-    this.notify({ fieldName: name });
+    this.notify({
+      fieldName: name,
+      prevValue: prevFieldState.value,
+      currentValue: nextState.value,
+    });
   }
 
   realtimeValidation<Fields extends Record<string, boolean>>(
@@ -69,40 +92,47 @@ export class FormStore {
       options: { signal: AbortSignal }
     ) => PromiseLike<unknown> | unknown
   ): () => void {
-    return this.subscribe(() => {
-      const valuesEntries = Object.entries(fields)
-        .filter(([_, v]) => v)
-        .map(([k]) => [k, this.#state.fields[k].value] as const);
-      const values = Object.fromEntries(valuesEntries) as Record<
-        keyof Fields,
-        string
-      >;
+    return this.subscribe(
+      () => {
+        const valuesEntries = Object.entries(fields)
+          .filter(([_, v]) => v)
+          .map(([k]) => [k, this.#state.fields[k].value] as const);
+        const values = Object.fromEntries(valuesEntries) as Record<
+          keyof Fields,
+          string
+        >;
 
-      this.#validationManager.tryToExecute(
-        targetName,
-        values,
-        async (values, ac) => {
-          this.mutateField(targetName, (prev) => ({
-            ...prev,
-            isValidating: true,
-          }));
-
-          const validationError = await fn(values, { signal: ac.signal });
-
-          if (ac.signal.aborted) {
+        this.#validationManager.tryToExecute(
+          targetName,
+          values,
+          async (values, ac) => {
             this.mutateField(targetName, (prev) => ({
               ...prev,
+              isValidating: true,
+            }));
+
+            const validationError = await fn(values, { signal: ac.signal });
+
+            if (ac.signal.aborted) {
+              this.mutateField(targetName, (prev) => ({
+                ...prev,
+                isValidating: false,
+              }));
+              return;
+            }
+            this.mutateField(targetName, (prev) => ({
+              ...prev,
+              realtimeError: validationError,
               isValidating: false,
             }));
-            return;
           }
-          this.mutateField(targetName, (prev) => ({
-            ...prev,
-            realtimeError: validationError,
-            isValidating: false,
-          }));
-        }
-      );
-    }, fields);
+        );
+      },
+      {
+        fields: Object.fromEntries(
+          Object.entries(fields).map(([k, v]) => [k, v && "value"] as const)
+        ),
+      }
+    );
   }
 }
