@@ -12,13 +12,14 @@ import { FormStore } from "../store/FormStore";
 import { FormSchema } from "../schema/FormSchema";
 import { FormState, formStateFromInternal } from "./FormState";
 import { flatInitialValuesFromSchema } from "../schema/FlatInitialValuesForSchema";
+import { EncodeSchema, encodeSchema } from "../schema/EncodeSchema";
 
 type FormContextContents<Sc extends FormSchema> = {
   store: FormStore;
   schema: Sc;
 };
 
-type FormContext<Sc extends FormSchema> = {
+export type FormContext<Sc extends FormSchema> = {
   useContext: () => FormContextContents<Sc>;
 
   useSelector: <T extends unknown>(
@@ -27,6 +28,8 @@ type FormContext<Sc extends FormSchema> = {
   ) => T;
 
   Provider: React.FC<{ children: ReactNode }>;
+
+  $: EncodeSchema<Sc>;
 };
 
 export const createFormContext = <Sc extends FormSchema>(
@@ -71,5 +74,5 @@ export const createFormContext = <Sc extends FormSchema>(
     return <ctx.Provider value={ref.current}>{children}</ctx.Provider>;
   };
 
-  return { useContext, useSelector, Provider };
+  return { useContext, useSelector, Provider, $: encodeSchema(schema) };
 };
