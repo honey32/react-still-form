@@ -1,45 +1,62 @@
-import { useCallback, useMemo } from "react";
+import { useMemo } from "react";
 import { FormContext } from "./context/createFormContext";
 import { FormSchema } from "./schema/FormSchema";
 import { _handleFieldChange, HandleFieldChangeFn } from "./handleFieldChange";
 import { InternalFieldState } from "./store/InternalFieldState";
 
+type InputProps = {
+  value: string;
+  onChange: HandleFieldChangeFn;
+  onFocus: () => void;
+  onBlur: () => void;
+};
+
+type ReturnType = {
+  input: InputProps;
+  meta: Omit<InternalFieldState, "value">;
+};
+
 export const useSimpleField = (
   ctx: FormContext<FormSchema>,
   field: { name: string }
-): {
-  state: InternalFieldState;
-  handleChange: HandleFieldChangeFn;
-  onFocus: () => void;
-  onBlur: () => void;
-} => {
+): ReturnType => {
+  // mutation functions
+
+  const context = ctx.useContext();
+
+  const input: Omit<InputProps, "value"> = useMemo(() => {
+    const store = context.store;
+    const name = field.name;
+
+    return {
+      onChange: _handleFieldChange(context.store, field.name),
+      onFocus: () =>
+        store.mutateField(name, (prev) => ({
+          ...prev,
+          visited: true,
+          active: true,
+        })),
+      onBlur: () =>
+        store.mutateField(name, (prev) => ({
+          ...prev,
+          touched: true,
+          active: false,
+        })),
+    };
+  }, [context.store, field.name]);
+
+  // subscribing to field state
+
   const fieldState = ctx.useSelector((s) => s.fields[field.name], {
     fields: { [field.name]: true },
   });
 
-  const context = ctx.useContext();
-  const handleChange = useMemo(
-    () => _handleFieldChange(context.store, field.name),
-    [context.store, field.name]
-  );
-
-  const onFocus = useCallback(() => {
-    context.store.mutateField(field.name, (prev) => ({
-      ...prev,
-      visited: true,
-      active: true,
-    }));
-  }, [context.store, field.name]);
-
-  const onBlur = useCallback(() => {
-    context.store.mutateField(field.name, (prev) => ({
-      ...prev,
-      touched: true,
-      active: false,
-    }));
-  }, [context.store, field.name]);
-
   if (!fieldState) throw new Error(`field "${field.name}" is not initialized.`);
 
-  return { state: fieldState, handleChange, onFocus, onBlur };
+  const { value, ...meta } = fieldState;
+
+  return {
+    input: { value, ...input },
+    meta,
+  };
 };

@@ -31,16 +31,9 @@ const AddA: React.FC = () => {
 };
 
 const InputB: React.FC = () => {
-  const { state, handleChange, ...rest } = useSimpleField(form, form.$.aaa);
+  const { input } = useSimpleField(form, form.$.aaa);
 
-  return (
-    <input
-      placeholder="aaa"
-      value={state.value}
-      onChange={handleChange}
-      {...rest}
-    />
-  );
+  return <input placeholder="aaa" {...input} />;
 };
 
 const SwitchC0: React.FC = () => {
@@ -96,16 +89,9 @@ const SwitchC0: React.FC = () => {
 };
 
 const InputC0: React.FC<{ name: string }> = ({ name }) => {
-  const { state, handleChange, ...misc } = useSimpleField(form, { name });
+  const { input } = useSimpleField(form, { name });
 
-  return (
-    <input
-      placeholder={name}
-      value={state.value}
-      onChange={handleChange}
-      {...misc}
-    />
-  );
+  return <input placeholder={name} {...input} />;
 };
 
 const Page: React.FC = () => {
