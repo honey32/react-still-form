@@ -30,10 +30,15 @@ const AddA: React.FC = () => {
 };
 
 const InputB: React.FC = () => {
-  const { state, handleChange } = useSimpleField(form, form.$.aaa);
+  const { state, handleChange, ...rest } = useSimpleField(form, form.$.aaa);
 
   return (
-    <input placeholder="aaa" value={state.value} onChange={handleChange} />
+    <input
+      placeholder="aaa"
+      value={state.value}
+      onChange={handleChange}
+      {...rest}
+    />
   );
 };
 
@@ -49,7 +54,14 @@ const SwitchC0: React.FC = () => {
             ...s,
             fields: {
               ...s.fields,
-              [fieldName]: { initialValue: "", value: "" },
+              [fieldName]: {
+                initialValue: "",
+                value: "",
+                modified: false,
+                visited: false,
+                touched: false,
+                active: false,
+              },
             },
           };
         }
@@ -90,10 +102,15 @@ const SwitchC0: React.FC = () => {
 };
 
 const InputC0: React.FC<{ name: string }> = ({ name }) => {
-  const { state, handleChange } = useSimpleField(form, { name });
+  const { state, handleChange, ...misc } = useSimpleField(form, { name });
 
   return (
-    <input placeholder={name} value={state.value} onChange={handleChange} />
+    <input
+      placeholder={name}
+      value={state.value}
+      onChange={handleChange}
+      {...misc}
+    />
   );
 };
 
