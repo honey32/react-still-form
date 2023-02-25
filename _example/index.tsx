@@ -123,7 +123,12 @@ const Validate: React.FC = () => {
 
 const Page: React.FC = () => {
   return (
-    <form.Provider>
+    <form.Provider
+      onSubmit={useCallback((ev, values) => {
+        window.alert(JSON.stringify(values, null, 4));
+      }, [])}
+    >
+      <button>Submit</button>
       <Validate />
       <JsonAll />
       <AddA />

@@ -1,5 +1,7 @@
 import React, {
   createContext,
+  FormEvent,
+  FormEventHandler,
   ReactNode,
   useCallback,
   useContext as React_useContext,
@@ -27,7 +29,13 @@ export type FormContext<Sc extends FormSchema> = {
     options?: Parameters<FormStore["subscribe"]>[1]
   ) => T;
 
-  Provider: React.FC<{ children: ReactNode }>;
+  Provider: React.FC<{
+    children: ReactNode;
+    onSubmit: (
+      e: FormEvent<HTMLFormElement>,
+      values: Record<string, string>
+    ) => Promise<void> | void;
+  }>;
 
   $: EncodeSchema<Sc>;
 };
@@ -63,7 +71,7 @@ export const createFormContext = <Sc extends FormSchema>(
     );
   };
 
-  const Provider: Context["Provider"] = ({ children }) => {
+  const Provider: Context["Provider"] = ({ children, onSubmit }) => {
     const ref = useRef({
       store: new FormStore(
         composeInitialFormState(flatInitialValuesFromSchema(schema))
@@ -71,7 +79,25 @@ export const createFormContext = <Sc extends FormSchema>(
       schema,
     });
 
-    return <ctx.Provider value={ref.current}>{children}</ctx.Provider>;
+    const handleSubmit: FormEventHandler<HTMLFormElement> = useCallback(
+      (e) => {
+        e.preventDefault();
+        const { fields } = ref.current.store.state;
+        void onSubmit(
+          e,
+          Object.fromEntries(
+            Object.entries(fields).map(([k, v]) => [k, v.value] as const)
+          )
+        );
+      },
+      [onSubmit]
+    );
+
+    return (
+      <ctx.Provider value={ref.current}>
+        <form onSubmit={handleSubmit}>{children}</form>
+      </ctx.Provider>
+    );
   };
 
   return { useContext, useSelector, Provider, $: encodeSchema(schema) };
