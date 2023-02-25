@@ -7,6 +7,7 @@ export class FormStore {
   #state: InternalFormState;
   #listeners: FormEventListener[] = [];
   #validationManager = new AsyncTaskManager();
+  #validationRegistory = new Map<string, unknown>();
 
   constructor(readonly initialState: InternalFormState) {
     this.#state = initialState;
@@ -92,7 +93,14 @@ export class FormStore {
       options: { signal: AbortSignal }
     ) => PromiseLike<unknown> | unknown
   ): () => void {
-    return this.subscribe(
+    if (this.#validationRegistory.get(targetName)) {
+      throw new Error(
+        `target field "${targetName}" already has realtime validator. Only one allowed for one target.`
+      );
+    }
+    this.#validationRegistory.set(targetName, fn);
+
+    const unsbscribe = this.subscribe(
       () => {
         const valuesEntries = Object.entries(fields)
           .filter(([_, v]) => v)
@@ -134,5 +142,10 @@ export class FormStore {
         ),
       }
     );
+
+    return () => {
+      unsbscribe();
+      this.#validationRegistory.delete(targetName);
+    };
   }
 }
