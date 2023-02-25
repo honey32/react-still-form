@@ -16,6 +16,8 @@ import { FormState, formStateFromInternal } from "./FormState";
 import { flatInitialValuesFromSchema } from "../schema/FlatInitialValuesForSchema";
 import { EncodeSchema, encodeSchema } from "../schema/EncodeSchema";
 
+type OrPromise<T> = T | Promise<T>;
+
 type FormContextContents<Sc extends FormSchema> = {
   store: FormStore;
   schema: Sc;
@@ -34,13 +36,11 @@ export type FormContext<Sc extends FormSchema> = {
     onSubmit: (
       e: FormEvent<HTMLFormElement>,
       values: Record<string, string>
-    ) => Promise<void> | void;
+    ) => OrPromise<void>;
   }>;
 
   $: EncodeSchema<Sc>;
 };
-
-type OrPromise<T> = T | Promise<T>;
 
 type Options<Sc extends FormSchema> = {
   onPrepare?: (
