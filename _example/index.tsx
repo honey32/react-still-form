@@ -4,11 +4,25 @@ import { createFormContext } from "../src";
 import { initializeField } from "../src/store/initializeField";
 import { useSimpleField } from "../src/useSimpleField";
 
-const form = createFormContext({
-  aaa: { type: "string" },
-  bbb: { type: "string" },
-  ccc: { type: "array", of: { type: "string" } },
-});
+const form = createFormContext(
+  {
+    aaa: { type: "string" },
+    bbb: { type: "string" },
+    ccc: { type: "array", of: { type: "string" } },
+  },
+  {
+    onPrepare: (e, store) => {
+      store.mutateField("aaa", (prev) => ({
+        ...prev,
+        value: prev.value.toUpperCase(),
+      }));
+      const { fields } = store.state;
+      if (!fields["ccc.0"]) return { type: "canceled" };
+      if (fields["ccc.0"].value === "") return { type: "canceled" };
+      return { type: "success", state: { aaa: fields.aaa.value } };
+    },
+  }
+);
 
 const JsonAll: React.FC = () => {
   const json = form.useSelector((s) => JSON.stringify(s, null, 2));

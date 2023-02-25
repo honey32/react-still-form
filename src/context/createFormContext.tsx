@@ -40,9 +40,31 @@ export type FormContext<Sc extends FormSchema> = {
   $: EncodeSchema<Sc>;
 };
 
+type OrPromise<T> = T | Promise<T>;
+
+type Options<Sc extends FormSchema> = {
+  onPrepare?: (
+    e: FormEvent<HTMLFormElement>,
+    store: FormStore,
+    schema: Sc
+  ) => OrPromise<
+    { type: "success"; state: Record<string, string> } | { type: "canceled" }
+  >;
+};
+
 export const createFormContext = <Sc extends FormSchema>(
-  schema: Sc
+  schema: Sc,
+  options: Options<Sc> = {}
 ): FormContext<Sc> => {
+  const {
+    onPrepare = (_e, store) => {
+      const entries = Object.entries(store.state.fields).map(
+        ([k, v]) => [k, v.value] as const
+      );
+      const obj = Object.fromEntries(entries);
+      return { type: "success", state: obj };
+    },
+  } = options;
   type Context = FormContext<Sc>;
 
   const ctx = createContext<FormContextContents<Sc> | undefined>(undefined);
@@ -82,13 +104,14 @@ export const createFormContext = <Sc extends FormSchema>(
     const handleSubmit: FormEventHandler<HTMLFormElement> = useCallback(
       (e) => {
         e.preventDefault();
-        const { fields } = ref.current.store.state;
-        void onSubmit(
-          e,
-          Object.fromEntries(
-            Object.entries(fields).map(([k, v]) => [k, v.value] as const)
-          )
-        );
+        void Promise.resolve(
+          onPrepare(e, ref.current.store, ref.current.schema)
+        ).then(async (result) => {
+          if (result.type !== "success") {
+            return;
+          }
+          await onSubmit(e, result.state);
+        });
       },
       [onSubmit]
     );
