@@ -33,11 +33,19 @@ export type FormContext<Sc extends FormSchema> = {
 
   Provider: React.FC<{
     children: ReactNode;
+
+    /**
+     * called if `onPrepare` returns successful result
+     */
     onSubmit: (
       e: FormEvent<HTMLFormElement>,
       values: Record<string, string>
     ) => OrPromise<void>;
 
+    /**
+     * called before `onSubmit`.
+     * If return successfull result, the value will be passed to onSubmit.
+     */
     onPrepare: (
       e: FormEvent<HTMLFormElement>,
       store: FormStore,
@@ -81,17 +89,7 @@ export const createFormContext = <Sc extends FormSchema>(
     );
   };
 
-  const Provider: Context["Provider"] = ({
-    children,
-    onSubmit,
-    onPrepare = (_e, store) => {
-      const entries = Object.entries(store.state.fields).map(
-        ([k, v]) => [k, v.value] as const
-      );
-      const obj = Object.fromEntries(entries);
-      return { type: "success", state: obj };
-    },
-  }) => {
+  const Provider: Context["Provider"] = ({ children, onSubmit, onPrepare }) => {
     const ref = useRef({
       store: new FormStore(
         composeInitialFormState(flatInitialValuesFromSchema(schema))
