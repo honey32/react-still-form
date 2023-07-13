@@ -37,34 +37,22 @@ export type FormContext<Sc extends FormSchema> = {
       e: FormEvent<HTMLFormElement>,
       values: Record<string, string>
     ) => OrPromise<void>;
+
+    onPrepare: (
+      e: FormEvent<HTMLFormElement>,
+      store: FormStore,
+      schema: Sc
+    ) => OrPromise<
+      { type: "success"; state: Record<string, string> } | { type: "canceled" }
+    >;
   }>;
 
   $: EncodeSchema<Sc>;
 };
 
-type Options<Sc extends FormSchema> = {
-  onPrepare?: (
-    e: FormEvent<HTMLFormElement>,
-    store: FormStore,
-    schema: Sc
-  ) => OrPromise<
-    { type: "success"; state: Record<string, string> } | { type: "canceled" }
-  >;
-};
-
 export const createFormContext = <Sc extends FormSchema>(
-  schema: Sc,
-  options: Options<Sc> = {}
+  schema: Sc
 ): FormContext<Sc> => {
-  const {
-    onPrepare = (_e, store) => {
-      const entries = Object.entries(store.state.fields).map(
-        ([k, v]) => [k, v.value] as const
-      );
-      const obj = Object.fromEntries(entries);
-      return { type: "success", state: obj };
-    },
-  } = options;
   type Context = FormContext<Sc>;
 
   const ctx = createContext<FormContextContents<Sc> | undefined>(undefined);
@@ -93,7 +81,17 @@ export const createFormContext = <Sc extends FormSchema>(
     );
   };
 
-  const Provider: Context["Provider"] = ({ children, onSubmit }) => {
+  const Provider: Context["Provider"] = ({
+    children,
+    onSubmit,
+    onPrepare = (_e, store) => {
+      const entries = Object.entries(store.state.fields).map(
+        ([k, v]) => [k, v.value] as const
+      );
+      const obj = Object.fromEntries(entries);
+      return { type: "success", state: obj };
+    },
+  }) => {
     const ref = useRef({
       store: new FormStore(
         composeInitialFormState(flatInitialValuesFromSchema(schema))
@@ -113,7 +111,7 @@ export const createFormContext = <Sc extends FormSchema>(
           await onSubmit(e, result.state);
         });
       },
-      [onSubmit]
+      [onPrepare, onSubmit]
     );
 
     return (
