@@ -123,7 +123,22 @@ const Validate: React.FC = () => {
 
 const Page: React.FC = () => {
   return (
-    <form.Provider>
+    <form.Provider
+      onSubmit={useCallback((ev, values) => {
+        window.alert(JSON.stringify(values, null, 4));
+      }, [])}
+      onPrepare={useCallback(async (e, store) => {
+        store.mutateField("aaa", (prev) => ({
+          ...prev,
+          value: prev.value.toUpperCase(),
+        }));
+        const { fields } = store.state;
+        if (!fields["ccc.0"]) return { type: "canceled" };
+        if (fields["ccc.0"].value === "") return { type: "canceled" };
+        return { type: "success", state: { aaa: fields.aaa.value } };
+      }, [])}
+    >
+      <button>Submit</button>
       <Validate />
       <JsonAll />
       <AddA />

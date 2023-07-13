@@ -1,5 +1,7 @@
 import React, {
   createContext,
+  FormEvent,
+  FormEventHandler,
   ReactNode,
   useCallback,
   useContext as React_useContext,
@@ -14,6 +16,8 @@ import { FormState, formStateFromInternal } from "./FormState";
 import { flatInitialValuesFromSchema } from "../schema/FlatInitialValuesForSchema";
 import { EncodeSchema, encodeSchema } from "../schema/EncodeSchema";
 
+type OrPromise<T> = T | Promise<T>;
+
 type FormContextContents<Sc extends FormSchema> = {
   store: FormStore;
   schema: Sc;
@@ -27,7 +31,29 @@ export type FormContext<Sc extends FormSchema> = {
     options?: Parameters<FormStore["subscribe"]>[1]
   ) => T;
 
-  Provider: React.FC<{ children: ReactNode }>;
+  Provider: React.FC<{
+    children: ReactNode;
+
+    /**
+     * called if `onPrepare` returns successful result
+     */
+    onSubmit: (
+      e: FormEvent<HTMLFormElement>,
+      values: Record<string, string>
+    ) => OrPromise<void>;
+
+    /**
+     * called before `onSubmit`.
+     * If return successfull result, the value will be passed to onSubmit.
+     */
+    onPrepare: (
+      e: FormEvent<HTMLFormElement>,
+      store: FormStore,
+      schema: Sc
+    ) => OrPromise<
+      { type: "success"; state: Record<string, string> } | { type: "canceled" }
+    >;
+  }>;
 
   $: EncodeSchema<Sc>;
 };
@@ -63,7 +89,7 @@ export const createFormContext = <Sc extends FormSchema>(
     );
   };
 
-  const Provider: Context["Provider"] = ({ children }) => {
+  const Provider: Context["Provider"] = ({ children, onSubmit, onPrepare }) => {
     const ref = useRef({
       store: new FormStore(
         composeInitialFormState(flatInitialValuesFromSchema(schema))
@@ -71,7 +97,26 @@ export const createFormContext = <Sc extends FormSchema>(
       schema,
     });
 
-    return <ctx.Provider value={ref.current}>{children}</ctx.Provider>;
+    const handleSubmit: FormEventHandler<HTMLFormElement> = useCallback(
+      (e) => {
+        e.preventDefault();
+        void Promise.resolve(
+          onPrepare(e, ref.current.store, ref.current.schema)
+        ).then(async (result) => {
+          if (result.type !== "success") {
+            return;
+          }
+          await onSubmit(e, result.state);
+        });
+      },
+      [onPrepare, onSubmit]
+    );
+
+    return (
+      <ctx.Provider value={ref.current}>
+        <form onSubmit={handleSubmit}>{children}</form>
+      </ctx.Provider>
+    );
   };
 
   return { useContext, useSelector, Provider, $: encodeSchema(schema) };
