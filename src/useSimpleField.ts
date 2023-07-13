@@ -1,6 +1,5 @@
 import { useMemo } from "react";
 import { FormContext } from "./context/createFormContext";
-import { FormSchema } from "./schema/FormSchema";
 import { _handleFieldChange, HandleFieldChangeFn } from "./handleFieldChange";
 import { InternalFieldState } from "./store/InternalFieldState";
 
@@ -18,7 +17,7 @@ type ReturnType = {
 };
 
 export const useSimpleField = (
-  ctx: FormContext<FormSchema>,
+  ctx: FormContext<any>,
   field: { name: string }
 ): ReturnType => {
   // mutation functions
